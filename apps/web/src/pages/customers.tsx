@@ -53,6 +53,7 @@ import { Input } from "@workspace/ui/components/input"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -397,11 +398,13 @@ export function CustomersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PLAN_ITEMS.map((p) => (
-              <SelectItem key={p.value} value={p.value}>
-                {p.label}
-              </SelectItem>
-            ))}
+            <SelectGroup>
+              {PLAN_ITEMS.map((p) => (
+                <SelectItem key={p.value} value={p.value}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
           </SelectContent>
         </Select>
         {selected.length > 0 && (
