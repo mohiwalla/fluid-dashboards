@@ -46,6 +46,7 @@ shadcn on Base UI covers the rest: buttons, inputs, select, menus, alert dialogs
 
 - shadcn v4 neutral, dark only: `#0a0a0a` page, `#101010` cards, 1px borders. Color belongs to data.
 - Geist for UI, Geist Mono for numbers. 14/20 base, 36px controls, 32px small.
+- Spacing (from prox / high-quality-leads): 24px page padding (16px on phones), 256px sidebar with 8px padding and 32px items, 16px between cards. Wide cards pad 16px top/bottom and 24px at the sides (12/16px on phones); narrow tiles pad evenly. List rows are at least 56px with 16/20px padding; table rows inset 16px; settings sections sit 32px apart with the heading above the card.
 - Every control works from the keyboard with a visible focus ring; dialogs return focus.
 - View choices (range, filters, density, toggles) persist in `localStorage` and are validated on restore.
 - Fluid grids (`auto-fit` / `minmax`), no horizontal page scroll at 390px, `prefers-reduced-motion` respected.

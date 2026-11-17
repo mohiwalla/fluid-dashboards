@@ -87,13 +87,9 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-3xl gap-4">
+    <div className="grid w-full max-w-3xl gap-6 sm:gap-8">
       <Section title="Profile">
-        <form
-          onSubmit={save}
-          noValidate
-          className="grid gap-4 px-4 py-4 sm:px-6"
-        >
+        <form onSubmit={save} noValidate className="grid gap-4 p-4 sm:px-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="name" label="Name" error={errors.name}>
               <Input
@@ -215,11 +211,13 @@ export function SettingsPage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   const id = `section-${title.toLowerCase()}`
   return (
-    <section aria-labelledby={id} className="rounded-xl border bg-card">
-      <h2 id={id} className="border-b px-4 py-3 font-semibold sm:px-6">
+    <section aria-labelledby={id} className="min-w-0">
+      <h2 id={id} className="mb-3 text-base leading-6 font-semibold">
         {title}
       </h2>
-      <div className="divide-y">{children}</div>
+      <div className="divide-y overflow-hidden rounded-xl border bg-card">
+        {children}
+      </div>
     </section>
   )
 }
@@ -236,7 +234,7 @@ function Row({
   children: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
+    <div className="flex min-h-14 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-5 sm:py-4">
       <div className="mr-auto grid min-w-0">
         {htmlFor ? (
           <Label htmlFor={htmlFor} className="font-medium">

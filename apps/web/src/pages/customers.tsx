@@ -342,7 +342,7 @@ export function CustomersPage() {
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full sm:w-72">
           <SearchIcon
@@ -449,7 +449,7 @@ export function CustomersPage() {
                             : "descending"
                           : undefined
                       }
-                      className={`h-10 px-3 text-[13px] text-muted-foreground ${cellClasses(meta)}`}
+                      className={`h-10 px-3 text-[13px] text-muted-foreground first:pl-4 last:pr-4 ${cellClasses(meta)}`}
                     >
                       {header.column.getCanSort() ? (
                         <button
@@ -495,7 +495,7 @@ export function CustomersPage() {
                   {row.getAllCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      className={`px-3 ${cellClasses(cell.column.columnDef.meta)}`}
+                      className={`px-3 first:pl-4 last:pr-4 ${cellClasses(cell.column.columnDef.meta)}`}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -517,7 +517,7 @@ export function CustomersPage() {
             )}
           </TableBody>
         </Table>
-        <div className="flex items-center justify-between gap-2 border-t px-3 py-2">
+        <div className="flex items-center justify-between gap-2 border-t px-4 py-2">
           <span
             className="tabular font-mono text-[13px] text-muted-foreground"
             aria-live="polite"

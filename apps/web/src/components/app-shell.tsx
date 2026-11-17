@@ -19,11 +19,11 @@ export function AppShell() {
 
   return (
     <TooltipProvider delay={400}>
-      <div className="min-h-svh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-svh flex-col border-r px-3 py-4 lg:flex">
-          <Wordmark className="px-2" />
-          <Nav orientation="vertical" className="mt-6" />
-          <div className="mt-auto px-2 text-xs text-muted-foreground">
+      <div className="min-h-svh lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-svh flex-col border-r px-2 pb-2 lg:flex">
+          <Wordmark className="h-14 shrink-0 px-2" />
+          <Nav orientation="vertical" className="mt-1" />
+          <div className="mt-auto px-2 py-2 text-xs text-muted-foreground">
             Demo data · stays in this browser
           </div>
         </aside>
@@ -120,7 +120,7 @@ function Nav({
     <nav
       ref={listRef}
       aria-label="Main"
-      className={`relative isolate flex ${vertical ? "flex-col gap-0.5" : "gap-1"} ${className}`}
+      className={`relative isolate flex ${vertical ? "flex-col gap-1" : "gap-1"} ${className}`}
     >
       {box && (
         <span
@@ -139,8 +139,10 @@ function Nav({
           to={to}
           end
           className={({ isActive }) =>
-            `flex h-9 items-center gap-2 rounded-md px-2 font-medium transition-colors ${
-              vertical ? "" : "flex-1 justify-center sm:flex-none sm:px-3"
+            `flex items-center gap-2 rounded-md px-2 font-medium transition-colors ${
+              vertical
+                ? "h-8"
+                : "h-9 flex-1 justify-center sm:flex-none sm:px-3"
             } ${isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"}`
           }
         >

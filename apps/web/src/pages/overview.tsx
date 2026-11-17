@@ -51,7 +51,7 @@ export function OverviewPage() {
     <div className="grid gap-4">
       <section
         aria-label="Key metrics"
-        className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3"
+        className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4"
       >
         <Kpi
           label={`Revenue · ${range}`}
@@ -75,9 +75,9 @@ export function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <section
           aria-labelledby="revenue-title"
-          className="min-w-0 rounded-xl border bg-card"
+          className="min-w-0 rounded-xl border bg-card px-4 py-3 sm:px-6 sm:py-4"
         >
-          <header className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-3 sm:px-6 sm:pt-4">
+          <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="mr-auto">
               <h2 id="revenue-title" className="font-semibold">
                 Revenue
@@ -111,7 +111,7 @@ export function OverviewPage() {
               }))}
             />
           </header>
-          <div className="px-2 pt-2 pb-3 sm:px-4 sm:pb-4">
+          <div className="mt-4">
             <LineChart
               label={`Daily revenue, last ${days} days`}
               points={points}
@@ -124,16 +124,16 @@ export function OverviewPage() {
 
         <section
           aria-labelledby="channels-title"
-          className="rounded-xl border bg-card"
+          className="rounded-xl border bg-card px-4 py-3 sm:px-6 sm:py-4"
         >
-          <header className="px-4 pt-3 pb-2 sm:px-5 sm:pt-4">
+          <header className="pb-1">
             <h2 id="channels-title" className="font-semibold">
               Channels
             </h2>
           </header>
-          <ul className="divide-y px-4 pb-2 sm:px-5">
+          <ul className="divide-y">
             {channels.map((channel) => (
-              <li key={channel.id} className="grid gap-1.5 py-2.5">
+              <li key={channel.id} className="grid gap-1.5 py-3 last:pb-0">
                 <div className="flex items-center gap-2">
                   <span
                     className="size-2 rounded-full"
@@ -180,7 +180,7 @@ function Kpi({
 }) {
   const good = delta !== null && (invert ? delta < 0 : delta > 0)
   return (
-    <div className="rounded-xl border bg-card px-4 py-3">
+    <div className="rounded-xl border bg-card px-4 py-3 sm:p-4">
       <div className="text-[13px] leading-[18px] text-muted-foreground">
         {label}
       </div>
