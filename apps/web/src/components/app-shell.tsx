@@ -46,7 +46,7 @@ export function AppShell() {
             />
           </header>
 
-          <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-4 sm:px-6 sm:py-6">
+          <main className="w-full min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-6">
             <Outlet />
           </main>
         </div>
