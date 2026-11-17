@@ -87,7 +87,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="grid w-full max-w-3xl gap-6 sm:gap-8">
+    <div className="mx-auto grid w-full max-w-3xl gap-6 sm:gap-8">
       <Section title="Profile">
         <form onSubmit={save} noValidate className="grid gap-4 p-4 sm:px-5">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -237,17 +237,17 @@ function Row({
     <div className="flex min-h-14 flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 sm:px-5 sm:py-4">
       <div className="mr-auto grid min-w-0">
         {htmlFor ? (
-          <Label htmlFor={htmlFor} className="font-medium">
+          <Label htmlFor={htmlFor} className="leading-5">
             {label}
           </Label>
         ) : (
-          <span className="font-medium">{label}</span>
+          <span className="leading-5 font-medium">{label}</span>
         )}
         <span className="text-[13px] leading-[18px] text-muted-foreground">
           {description}
         </span>
       </div>
-      <div className="flex max-w-full min-w-0">{children}</div>
+      <div className="flex max-w-full min-w-0 items-center">{children}</div>
     </div>
   )
 }
