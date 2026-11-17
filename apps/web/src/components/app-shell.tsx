@@ -18,7 +18,7 @@ export function AppShell() {
   const current = NAV.find((item) => item.to === pathname) ?? NAV[0]
 
   return (
-    <TooltipProvider delayDuration={400}>
+    <TooltipProvider delay={400}>
       <div className="min-h-svh lg:grid lg:grid-cols-[232px_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-svh flex-col border-r px-3 py-4 lg:flex">
           <Wordmark className="px-2" />

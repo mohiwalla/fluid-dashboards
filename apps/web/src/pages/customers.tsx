@@ -88,6 +88,10 @@ const PLANS: readonly PlanFilter[] = [
   "Team",
   "Enterprise",
 ]
+const PLAN_ITEMS = PLANS.map((p) => ({
+  value: p,
+  label: p === "all" ? "All plans" : p,
+}))
 type ColumnMeta = { numeric?: boolean; hideBelow?: "sm" | "md" | "lg" }
 
 const features = tableFeatures({
@@ -172,18 +176,19 @@ export function CustomersPage() {
         header: ({ table }) => (
           <Checkbox
             aria-label="Select all on this page"
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
+            checked={table.getIsAllPageRowsSelected()}
+            indeterminate={
+              !table.getIsAllPageRowsSelected() &&
+              table.getIsSomePageRowsSelected()
             }
-            onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+            onCheckedChange={(v) => table.toggleAllPageRowsSelected(v)}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             aria-label={`Select ${row.original.name}`}
             checked={row.getIsSelected()}
-            onCheckedChange={(v) => row.toggleSelected(!!v)}
+            onCheckedChange={(v) => row.toggleSelected(v)}
           />
         ),
         enableSorting: false,
@@ -252,25 +257,25 @@ export function CustomersPage() {
         enableSorting: false,
         cell: ({ row }) => (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Actions for ${row.original.name}`}
-              >
-                <MoreHorizontalIcon />
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={`Actions for ${row.original.name}`}
+                />
+              }
+            >
+              <MoreHorizontalIcon />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44">
               <DropdownMenuItem
-                onSelect={() =>
-                  navigator.clipboard
-                    .writeText(row.original.id)
-                    .catch(() =>
-                      toast.error("Couldn't copy", {
-                        description: "Select the ID and copy it.",
-                      })
-                    )
+                onClick={() =>
+                  navigator.clipboard.writeText(row.original.id).catch(() =>
+                    toast.error("Couldn't copy", {
+                      description: "Select the ID and copy it.",
+                    })
+                  )
                 }
               >
                 <CopyIcon /> Copy customer ID
@@ -278,7 +283,7 @@ export function CustomersPage() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onSelect={() => setArchiving([row.original])}
+                onClick={() => setArchiving([row.original])}
               >
                 <ArchiveIcon /> Archive
               </DropdownMenuItem>
@@ -383,14 +388,18 @@ export function CustomersPage() {
             label: s === "all" ? "All" : s[0].toUpperCase() + s.slice(1),
           }))}
         />
-        <Select value={plan} onValueChange={(v) => setPlan(v as PlanFilter)}>
+        <Select
+          items={PLAN_ITEMS}
+          value={plan}
+          onValueChange={(v) => v && setPlan(v)}
+        >
           <SelectTrigger aria-label="Plan" className="w-full sm:w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {PLANS.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p === "all" ? "All plans" : p}
+            {PLAN_ITEMS.map((p) => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
               </SelectItem>
             ))}
           </SelectContent>

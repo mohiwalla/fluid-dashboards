@@ -187,8 +187,8 @@ export function SettingsPage() {
           description="Clears saved filters, preferences and profile on this device."
         >
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Reset</Button>
+            <AlertDialogTrigger render={<Button variant="destructive" />}>
+              Reset
             </AlertDialogTrigger>
             <AlertDialogContent className="sm:max-w-md">
               <AlertDialogHeader>

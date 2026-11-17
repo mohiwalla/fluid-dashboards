@@ -141,6 +141,32 @@ test("archive confirms, stays busy until done, and removes the row", async ({
   await expect(page.locator("tbody")).not.toContainText(name)
 })
 
+test("plan select and row selection use Base UI semantics", async ({
+  page,
+}) => {
+  await page.goto("/customers")
+  const plan = page.getByRole("combobox", { name: "Plan" })
+  const value = plan.locator("[data-slot=select-value]")
+  await expect(value).toHaveText("All plans")
+  await plan.focus()
+  await page.keyboard.press("Enter")
+  await page.getByRole("option", { name: "Team" }).click()
+  await expect(value).toHaveText("Team")
+  await expect(plan).toBeFocused()
+  await page.reload()
+  await expect(value).toHaveText("Team")
+
+  const all = page.getByRole("checkbox", { name: "Select all on this page" })
+  const first = page.locator("tbody").getByRole("checkbox").first()
+  await first.click()
+  await expect(first).toHaveAttribute("aria-checked", "true")
+  await expect(all).toHaveAttribute("aria-checked", "mixed")
+  await all.click()
+  await expect(all).toHaveAttribute("aria-checked", "true")
+  await all.click()
+  await expect(first).toHaveAttribute("aria-checked", "false")
+})
+
 test("settings: inline validation, server error, honest save", async ({
   page,
 }) => {

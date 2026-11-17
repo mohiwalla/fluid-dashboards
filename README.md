@@ -1,6 +1,6 @@
 # fluid dashboards
 
-A dense, dark, keyboard-first dashboard starter: Turbo monorepo, Vite + React 19, shadcn/ui (Radix, Tailwind v4) and [UI SDK](https://ui-sdk.dev) for custom behaviors.
+A dense, dark, keyboard-first dashboard starter: Turbo monorepo, Vite + React 19, shadcn/ui ([Base UI](https://base-ui.com), `base-nova` style, Tailwind v4) and [UI SDK](https://ui-sdk.dev) for custom behaviors.
 
 | Page | Path | What it shows |
 | --- | --- | --- |
@@ -31,7 +31,7 @@ apps/web            Vite app: routes, pages, app components, e2e tests
 packages/ui         shared shadcn components and the global theme (globals.css)
 ```
 
-Add shadcn components from `apps/web`: `npx shadcn@latest add <name>`. They land in `packages/ui/src/components`.
+Add shadcn components from `apps/web`: `npx shadcn@latest add <name>`. They land in `packages/ui/src/components` and use Base UI (`@base-ui/react`); compose triggers with `render={<Button />}`, not `asChild`.
 
 ## Where UI SDK is used
 
@@ -40,7 +40,7 @@ Add shadcn components from `apps/web`: `npx shadcn@latest add <name>`. They land
 - **Shortcuts**: `useShortcut` for `/` (search) and `?` (help), scoped `Escape` to clear search, and `shortcuts.list()` to build the help dialog.
 - **Meter**: channel share bars with correct meter semantics.
 
-shadcn/Radix covers the rest: buttons, inputs, select, menus, alert dialogs, switches, table and Sonner toasts.
+shadcn on Base UI covers the rest: buttons, inputs, select, menus, alert dialogs, switches, table and Sonner toasts.
 
 ## Design rules
 
@@ -52,4 +52,4 @@ shadcn/Radix covers the rest: buttons, inputs, select, menus, alert dialogs, swi
 
 ## Tests
 
-`apps/web/e2e/app.spec.ts` covers clean URLs and back/forward, the palette, chart keyboard inspection, persisted choices, table search/filter/sort, the archive flow (confirm, busy, removal), form validation and server errors, density, shortcut help with focus return, 390px overflow on every page and reduced motion. A route guard fails any test that makes a non-localhost request.
+`apps/web/e2e/app.spec.ts` covers clean URLs and back/forward, the palette, chart keyboard inspection, persisted choices, table search/filter/sort, the archive flow (confirm, busy, removal), the plan select and row selection, form validation and server errors, density, shortcut help with focus return, 390px overflow on every page and reduced motion. A route guard fails any test that makes a non-localhost request.

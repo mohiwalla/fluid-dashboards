@@ -61,28 +61,27 @@ export function ShortcutsDialog() {
   return (
     <>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Keyboard shortcuts"
-            onClick={show}
-          >
-            <KeyboardIcon />
-          </Button>
+        <TooltipTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Keyboard shortcuts"
+              onClick={show}
+            />
+          }
+        >
+          <KeyboardIcon />
         </TooltipTrigger>
         <TooltipContent>Shortcuts · ?</TooltipContent>
       </Tooltip>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className="sm:max-w-md"
-          onCloseAutoFocus={(event) => {
+          finalFocus={() =>
             // Return focus to whatever opened the dialog (button, palette or shortcut).
-            if (opener.current?.isConnected) {
-              event.preventDefault()
-              opener.current.focus()
-            }
-          }}
+            opener.current?.isConnected ? opener.current : true
+          }
         >
           <DialogHeader>
             <DialogTitle>Keyboard shortcuts</DialogTitle>
