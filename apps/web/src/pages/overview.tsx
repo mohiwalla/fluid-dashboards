@@ -72,7 +72,7 @@ export function OverviewPage() {
         />
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(300px,30%)]">
         <section
           aria-labelledby="revenue-title"
           className="min-w-0 rounded-xl border bg-card px-4 py-3 sm:px-6 sm:py-4"
@@ -124,22 +124,20 @@ export function OverviewPage() {
 
         <section
           aria-labelledby="channels-title"
-          className="rounded-xl border bg-card px-4 py-3 sm:px-6 sm:py-4"
+          className="flex flex-col rounded-xl border bg-card px-4 py-3 sm:px-6 sm:py-4"
         >
           <header className="pb-1">
             <h2 id="channels-title" className="font-semibold">
               Channels
             </h2>
           </header>
-          <ul className="divide-y">
+          <ul className="grid flex-1 auto-rows-fr divide-y">
             {channels.map((channel) => (
-              <li key={channel.id} className="grid gap-1.5 py-3 last:pb-0">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ background: channel.color }}
-                    aria-hidden
-                  />
+              <li
+                key={channel.id}
+                className="flex flex-col justify-center gap-2 py-3 last:pb-0"
+              >
+                <div className="flex items-baseline gap-2">
                   <span className="font-medium">{channel.label}</span>
                   <span className="tabular ml-auto font-mono text-[13px] text-muted-foreground">
                     {money.format(total * channel.share)}

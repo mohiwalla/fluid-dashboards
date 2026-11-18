@@ -88,35 +88,14 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto grid w-full max-w-3xl gap-6 sm:gap-8">
-      <Section title="Profile">
-        <form onSubmit={save} noValidate className="grid gap-4 p-4 sm:px-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="name" label="Name" error={errors.name}>
-              <Input
-                id="name"
-                autoComplete="name"
-                value={draft.name}
-                aria-invalid={!!errors.name}
-                aria-describedby={errors.name ? "name-error" : undefined}
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              />
-            </Field>
-            <Field id="email" label="Email" error={errors.email}>
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                value={draft.email}
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? "email-error" : undefined}
-                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-              />
-            </Field>
-          </div>
-          <div className="flex justify-end gap-2">
+      <Section
+        title="Profile"
+        action={
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               disabled={!dirty || busy}
               onClick={() => {
                 setDraft(saved)
@@ -127,6 +106,8 @@ export function SettingsPage() {
             </Button>
             <Button
               type="submit"
+              form="profile"
+              size="sm"
               disabled={!dirty || busy}
               aria-busy={busy || undefined}
             >
@@ -134,6 +115,44 @@ export function SettingsPage() {
               {busy ? "Saving…" : "Save"}
             </Button>
           </div>
+        }
+      >
+        <form id="profile" onSubmit={save} noValidate className="divide-y">
+          <Row
+            label="Name"
+            htmlFor="name"
+            description="As it appears on invoices."
+            controlClassName="w-full sm:w-72"
+          >
+            <Field id="name" error={errors.name}>
+              <Input
+                id="name"
+                autoComplete="name"
+                value={draft.name}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? "name-error" : undefined}
+                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+              />
+            </Field>
+          </Row>
+          <Row
+            label="Email"
+            htmlFor="email"
+            description="Where alerts and the weekly digest go."
+            controlClassName="w-full sm:w-72"
+          >
+            <Field id="email" error={errors.email}>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={draft.email}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+              />
+            </Field>
+          </Row>
         </form>
       </Section>
 
@@ -208,13 +227,24 @@ export function SettingsPage() {
   )
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string
+  action?: ReactNode
+  children: ReactNode
+}) {
   const id = `section-${title.toLowerCase()}`
   return (
     <section aria-labelledby={id} className="min-w-0">
-      <h2 id={id} className="mb-3 text-base leading-6 font-semibold">
-        {title}
-      </h2>
+      <div className="mb-3 flex min-h-8 items-center justify-between gap-3">
+        <h2 id={id} className="text-base leading-6 font-semibold">
+          {title}
+        </h2>
+        {action}
+      </div>
       <div className="divide-y overflow-hidden rounded-xl border bg-card">
         {children}
       </div>
@@ -226,11 +256,13 @@ function Row({
   label,
   description,
   htmlFor,
+  controlClassName = "",
   children,
 }: {
   label: string
   description: string
   htmlFor?: string
+  controlClassName?: string
   children: ReactNode
 }) {
   return (
@@ -247,25 +279,26 @@ function Row({
           {description}
         </span>
       </div>
-      <div className="flex max-w-full min-w-0 items-center">{children}</div>
+      <div
+        className={`flex max-w-full min-w-0 items-center ${controlClassName}`}
+      >
+        {children}
+      </div>
     </div>
   )
 }
 
 function Field({
   id,
-  label,
   error,
   children,
 }: {
   id: string
-  label: string
   error?: string
   children: ReactNode
 }) {
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+    <div className="grid w-full gap-1.5">
       {children}
       {error && (
         <p

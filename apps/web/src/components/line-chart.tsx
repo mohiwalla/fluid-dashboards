@@ -16,16 +16,21 @@ type Props = {
   label: string
   format: (value: number) => string
   formatTime: (t: number) => string
-  height?: number
   color?: string
 }
 
+/** What the crosshair shows: a recorded sample, or a value on the projection line. */
+type Inspected = { t: number; value: number; projected: boolean }
+
 const PAD = { top: 16, right: 16, bottom: 28, left: 52 }
+const GLIDE = "140ms var(--ease-out)"
 
 /**
- * Bold monotone line chart. Pointer scrubbing is coalesced into one frame;
- * ←/→/Home/End step through points while the chart has focus. The tooltip
- * follows the inspected point on the line.
+ * Bold monotone line chart, scrubbed like prox: pointer moves are coalesced
+ * into one frame, the crosshair and tooltip glide between positions (they
+ * only fade when they first appear), recorded history snaps to the nearest
+ * real sample and the projection is a dotted line the pointer glides along.
+ * ←/→/Home/End step through the samples while the chart has focus.
  */
 export function LineChart({
   points,
@@ -33,15 +38,24 @@ export function LineChart({
   label,
   format,
   formatTime,
-  height = 280,
   color = "var(--chart-1)",
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null)
+  const tipRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
-  const [inspect, setInspect] = useState<number | null>(null)
+  // The last reading stays rendered while the crosshair fades out, so it doesn't jump on exit.
+  const [reading, setReading] = useState<Inspected | null>(null)
+  const [active, setActive] = useState(false)
+  // Off for the frame the crosshair appears, so it fades in place instead of sliding in.
+  const [glide, setGlide] = useState(false)
+  const [tip, setTip] = useState({ w: 0, h: 0 })
   const [drawn, setDrawn] = useState(false)
   const gradientId = useId()
   const frame = useRef(0)
+  const pointerX = useRef(0)
+  const activeRef = useRef(false)
+  const glideFrame = useRef(0)
+  const height = width && width < 560 ? 200 : 240
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -62,7 +76,29 @@ export function LineChart({
     }
   }, [width, drawn])
 
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(frame.current)
+      cancelAnimationFrame(glideFrame.current)
+    },
+    []
+  )
+
+  // Measure the tooltip after its text changes so it can sit beside the point.
+  useLayoutEffect(() => {
+    const el = tipRef.current
+    if (el && (el.offsetWidth !== tip.w || el.offsetHeight !== tip.h))
+      setTip({ w: el.offsetWidth, h: el.offsetHeight })
+  }, [reading, tip])
+
   const all = useMemo(() => [...points, ...forecast], [points, forecast])
+  // The projection starts at the last recorded sample so the dotted line connects.
+  const projection = useMemo(
+    () =>
+      forecast.length && points.length ? [points.at(-1)!, ...forecast] : [],
+    [points, forecast]
+  )
+
   const geo = useMemo(() => {
     if (!width || all.length < 2) return null
     const t0 = all[0].t
@@ -71,6 +107,8 @@ export function LineChart({
     const [lo, hi] = niceRange(Math.min(...values), Math.max(...values))
     const x = (t: number) =>
       PAD.left + ((t - t0) / (t1 - t0)) * (width - PAD.left - PAD.right)
+    const tAt = (px: number) =>
+      t0 + ((px - PAD.left) / (width - PAD.left - PAD.right)) * (t1 - t0)
     const y = (v: number) =>
       PAD.top + (1 - (v - lo) / (hi - lo)) * (height - PAD.top - PAD.bottom)
     const ticks = Array.from({ length: 4 }, (_, i) => lo + ((hi - lo) * i) / 3)
@@ -86,31 +124,75 @@ export function LineChart({
         .y0(height - PAD.bottom)
         .y1((p) => y(p.value))
         .curve(curveMonotoneX)(points) ?? ""
-    return { x, y, ticks, xTicks, path, fill }
-  }, [all, points, width, height])
+    // Straight segments, so a value read off the projection matches what is drawn.
+    const projected =
+      line<Point>()
+        .x((p) => x(p.t))
+        .y((p) => y(p.value))(projection) ?? ""
+    return { x, tAt, y, ticks, xTicks, path, fill, projected }
+  }, [all, points, projection, width, height])
 
-  const index = inspect === null ? null : Math.min(inspect, all.length - 1)
-  const active = index === null ? null : all[index]
-  const isForecast = index !== null && index >= points.length
+  /** Recorded history snaps to the nearest sample; the projection interpolates. */
+  const seriesAt = (t: number): Inspected => {
+    const first = all[0].t
+    const last = all[all.length - 1].t
+    t = Math.min(last, Math.max(first, t))
+    if (projection.length > 1 && t > projection[0].t) {
+      const i = Math.max(
+        1,
+        projection.findIndex((p) => p.t >= t)
+      )
+      const a = projection[i - 1]
+      const b = projection[i]
+      const k = (t - a.t) / (b.t - a.t || 1)
+      return { t, value: a.value + (b.value - a.value) * k, projected: true }
+    }
+    const nearest = points.reduce((a, b) =>
+      Math.abs(a.t - t) < Math.abs(b.t - t) ? a : b
+    )
+    return { ...nearest, projected: false }
+  }
 
-  const onPointerMove = (event: React.PointerEvent<SVGSVGElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const px = event.clientX - rect.left
-    cancelAnimationFrame(frame.current)
+  const scrub = (event: React.PointerEvent<SVGSVGElement>) => {
+    pointerX.current =
+      event.clientX - event.currentTarget.getBoundingClientRect().left
+    if (frame.current) return
     frame.current = requestAnimationFrame(() => {
-      if (!geo) return
-      let best = 0
-      for (let i = 1; i < all.length; i++) {
-        if (Math.abs(geo.x(all[i].t) - px) < Math.abs(geo.x(all[best].t) - px))
-          best = i
-      }
-      setInspect(best)
+      frame.current = 0
+      if (geo) show(seriesAt(geo.tAt(pointerX.current)))
     })
+  }
+
+  const show = (next: Inspected) => {
+    setReading(next)
+    if (activeRef.current) return
+    activeRef.current = true
+    setActive(true)
+    setGlide(false)
+    cancelAnimationFrame(glideFrame.current)
+    glideFrame.current = requestAnimationFrame(() => setGlide(true))
+  }
+
+  const clear = () => {
+    cancelAnimationFrame(frame.current)
+    cancelAnimationFrame(glideFrame.current)
+    frame.current = 0
+    activeRef.current = false
+    setActive(false)
+    setGlide(false)
   }
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     const last = all.length - 1
-    const current = index ?? last
+    const t = active ? reading?.t : undefined
+    const current =
+      t === undefined
+        ? last
+        : all.reduce(
+            (best, p, i) =>
+              Math.abs(p.t - t) < Math.abs(all[best].t - t) ? i : best,
+            0
+          )
     const next = {
       ArrowLeft: current - 1,
       ArrowRight: current + 1,
@@ -119,8 +201,27 @@ export function LineChart({
     }[event.key]
     if (next === undefined) return
     event.preventDefault()
-    setInspect(Math.max(0, Math.min(last, next)))
+    const i = Math.max(0, Math.min(last, next))
+    show({ ...all[i], projected: i >= points.length })
   }
+
+  const shown = reading
+
+  let px = 0
+  let py = 0
+  let tipX = 0
+  let tipY = 0
+  if (geo && shown) {
+    px = geo.x(shown.t)
+    py = geo.y(shown.value)
+    // Beside the point: above-right when there is room, flipped near the edges.
+    tipX = px + 16
+    tipY = py - tip.h - 12
+    if (tipX + tip.w > width) tipX = px - 16 - tip.w
+    if (tipY < 0) tipY = py + 12
+    tipX = Math.max(0, tipX)
+  }
+  const motion = glide ? GLIDE : "0s"
 
   return (
     <div
@@ -136,17 +237,18 @@ export function LineChart({
           aria-label={label}
           tabIndex={0}
           className="block touch-pan-y rounded-md"
-          onPointerMove={onPointerMove}
-          onPointerLeave={() => {
-            cancelAnimationFrame(frame.current)
-            setInspect(null)
+          onPointerMove={scrub}
+          onPointerDown={scrub}
+          onPointerLeave={(event) => {
+            // A tap keeps its reading; a mouse leaving the chart clears it.
+            if (event.pointerType === "mouse") clear()
           }}
           onKeyDown={onKeyDown}
-          onBlur={() => setInspect(null)}
+          onBlur={clear}
         >
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+              <stop offset="0%" stopColor={color} stopOpacity={0.16} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
@@ -204,57 +306,81 @@ export function LineChart({
             strokeDashoffset={drawn ? 0 : 1}
             style={{ transition: "stroke-dashoffset 900ms var(--ease-out)" }}
           />
-          {forecast.map((p) => (
-            <circle
-              key={p.t}
-              cx={geo.x(p.t)}
-              cy={geo.y(p.value)}
-              r={2.5}
-              fill={color}
-              opacity={0.7}
+          {geo.projected && (
+            <path
+              d={geo.projected}
+              fill="none"
+              stroke={color}
+              strokeOpacity={0.7}
+              strokeWidth={4}
+              strokeLinecap="round"
+              strokeDasharray="0 10"
+              className={`transition-opacity duration-500 ${drawn ? "opacity-100" : "opacity-0"}`}
             />
-          ))}
-          {active && (
-            <g pointerEvents="none">
-              <line
-                x1={geo.x(active.t)}
-                x2={geo.x(active.t)}
-                y1={PAD.top}
-                y2={height - PAD.bottom}
-                stroke="var(--muted-foreground)"
-                strokeDasharray="3 3"
-              />
-              <circle
-                cx={geo.x(active.t)}
-                cy={geo.y(active.value)}
-                r={6}
-                fill={color}
-                stroke="var(--card)"
-                strokeWidth={3}
-              />
-            </g>
           )}
+          <g
+            pointerEvents="none"
+            style={{
+              opacity: active ? 1 : 0,
+              transition: "opacity 150ms ease",
+            }}
+          >
+            <line
+              x1={0}
+              x2={0}
+              y1={PAD.top}
+              y2={height - PAD.bottom}
+              stroke="rgb(255 255 255 / 20%)"
+              style={{
+                transform: `translateX(${px}px)`,
+                transition: `transform ${motion}`,
+              }}
+            />
+            <g
+              style={{
+                transform: `translate(${px}px, ${py}px)`,
+                transition: `transform ${motion}`,
+              }}
+            >
+              <circle r={12} fill={color} opacity={0.2} />
+              <circle r={6} fill={color} stroke="var(--card)" strokeWidth={3} />
+            </g>
+          </g>
         </svg>
       )}
-      {geo && active && (
-        <div
-          role="status"
-          className="pointer-events-none absolute z-10 min-w-28 rounded-md border bg-popover px-2.5 py-1.5 shadow-lg"
-          style={{
-            left: Math.min(Math.max(geo.x(active.t), 64), width - 64),
-            top: geo.y(active.value),
-            transform: `translate(-50%, ${geo.y(active.value) < 70 ? "16px" : "calc(-100% - 16px)"})`,
-          }}
-        >
-          <div className="text-xs text-muted-foreground">
-            {formatTime(active.t)}
-            {isForecast && " · projected"}
-          </div>
-          <div className="tabular font-mono text-sm font-medium">
-            {format(active.value)}
-          </div>
-        </div>
-      )}
+      <div
+        ref={tipRef}
+        role="status"
+        className="pointer-events-none absolute top-0 left-0 z-10 grid min-w-34 gap-1 rounded-md border bg-background px-2.5 py-1.5 text-xs shadow-[0_8px_24px_rgb(0_0_0/40%)] will-change-transform"
+        style={{
+          transform: `translate3d(${tipX}px, ${tipY}px, 0)`,
+          opacity: active ? 1 : 0,
+          visibility: active ? "visible" : "hidden",
+          transition: active
+            ? `transform ${motion}, opacity 150ms ease`
+            : "opacity 150ms ease, visibility 0s 150ms",
+        }}
+      >
+        {shown && (
+          <>
+            <div className="font-medium">{formatTime(shown.t)}</div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <i
+                className="size-2.5 shrink-0 rounded-[2px]"
+                style={
+                  shown.projected
+                    ? { border: `1.5px dashed ${color}` }
+                    : { background: color }
+                }
+              />
+              <span>{shown.projected ? "Projected" : "Recorded"}</span>
+              <strong className="tabular ml-auto pl-4 font-mono font-medium text-foreground">
+                {format(shown.value)}
+              </strong>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

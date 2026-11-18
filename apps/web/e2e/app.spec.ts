@@ -79,6 +79,25 @@ test("chart is inspectable with arrow keys", async ({ page }) => {
   ).toBeVisible()
 })
 
+test("chart scrubs with the pointer and labels the projection", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("switch", { name: "Forecast" }).click()
+  const chart = page.getByRole("img", { name: /Daily revenue/ })
+  const box = (await chart.boundingBox())!
+  const tip = page.locator("[role=status]").filter({ hasText: /Recorded|Projected/ })
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height / 2)
+  await expect(tip).toContainText("Recorded")
+  await expect(tip).toContainText(/Oct|Nov/)
+  await page.mouse.move(box.x + box.width - 24, box.y + box.height / 2)
+  await expect(tip).toContainText("Projected")
+  const t = (await tip.boundingBox())!
+  expect(t.x + t.width).toBeLessThanOrEqual(box.x + box.width + 1)
+  await page.mouse.move(box.x + box.width / 2, box.y - 80)
+  await expect(tip).toBeHidden()
+})
+
 test("range choice uses arrow keys and survives reload", async ({ page }) => {
   await page.goto("/")
   await page.getByRole("radio", { name: "30d" }).focus()

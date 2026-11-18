@@ -30,7 +30,7 @@ export function AppShell() {
 
         <div className="flex min-w-0 flex-col">
           <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-            <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
+            <div className="mx-auto flex h-14 w-full max-w-[1488px] items-center gap-3 px-4 sm:px-6">
               <Wordmark className="lg:hidden" />
               <h1 className="sr-only text-base font-semibold lg:not-sr-only">
                 {current.label}
@@ -46,7 +46,7 @@ export function AppShell() {
             />
           </header>
 
-          <main className="w-full min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-6">
+          <main className="mx-auto w-full max-w-[1488px] min-w-0 flex-1 px-4 py-4 sm:px-6 sm:py-6">
             <Outlet />
           </main>
         </div>

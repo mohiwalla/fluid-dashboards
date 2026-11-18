@@ -4,7 +4,7 @@ A dense, dark, keyboard-first dashboard starter: Turbo monorepo, Vite + React 19
 
 | Page | Path | What it shows |
 | --- | --- | --- |
-| Overview | `/` | KPI tiles, revenue chart (monotone 4px line, rAF scrubbing, ←/→ inspection, live updates, projection), channel meters |
+| Overview | `/` | KPI tiles, revenue chart (monotone 4px line, prox-style scrubbing: the crosshair and tooltip glide between frame-coalesced readings, recorded values snap to real samples, the dotted projection is labelled Projected; tap to inspect on touch, ←/→/Home/End from the keyboard), channel meters |
 | Customers | `/customers` | TanStack Table v9: search (`/`, `?q=` in the URL), status and plan filters, sorting, selection, pagination, row menu, confirmed archive with undo |
 | Settings | `/settings` | Profile form with inline and server errors, density and notification preferences, copy-in-place key, confirmed reset |
 
@@ -46,7 +46,7 @@ shadcn on Base UI covers the rest: buttons, inputs, select, menus, alert dialogs
 
 - shadcn v4 neutral, dark only: `#0a0a0a` page, `#101010` cards, 1px borders. Color belongs to data.
 - Geist for UI, Geist Mono for numbers. 14/20 base, 36px controls, 32px small.
-- Spacing (from prox / high-quality-leads): a full-width shell with no centered max-width, so page content starts on the header title edge; 24px page padding (16px on phones), 256px sidebar with 8px padding and 32px items, 16px between cards. Wide cards pad 16px top/bottom and 24px at the sides (12/16px on phones); narrow tiles pad evenly. List rows are at least 56px with 16/20px padding; table rows inset 16px; settings is a centered `max-w-3xl` column with sections 32px apart and the heading above the card.
+- Spacing (from prox / high-quality-leads): header and page share one centered 1440px container, so page content starts on the header title edge at every width; 24px page padding (16px on phones), 256px sidebar with 8px padding and 32px items, 16px between cards. Wide cards pad 16px top/bottom and 24px at the sides (12/16px on phones); narrow tiles pad evenly. List rows are at least 56px with 16/20px padding; table rows inset 16px; settings is a centered `max-w-3xl` column with sections 32px apart and the heading above the card.
 - Every control works from the keyboard with a visible focus ring; dialogs return focus.
 - View choices (range, filters, density, toggles) persist in `localStorage` and are validated on restore.
 - Fluid grids (`auto-fit` / `minmax`), no horizontal page scroll at 390px, `prefers-reduced-motion` respected.
